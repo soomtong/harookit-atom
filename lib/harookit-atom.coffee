@@ -6,6 +6,19 @@ module.exports = HarookitAtom =
   modalPanel: null
   subscriptions: null
 
+  config:
+    harooCloudUserId:
+      title: 'User ID'
+      type: 'string'
+      default: 'User ID'
+      description: 'ID for Haroo cloud service'
+
+    harooCloudUserPassword:
+      title: 'Password'
+      type: 'string'
+      default: 'User Password'
+      description: 'Password for Haroo cloud user ID'
+
   activate: (state) ->
     @harookitAtomView = new HarookitAtomView(state.harookitAtomViewState)
     @modalPanel = atom.workspace.addModalPanel(item: @harookitAtomView.getElement(), visible: false)
@@ -14,7 +27,7 @@ module.exports = HarookitAtom =
     @subscriptions = new CompositeDisposable
 
     # Register command that toggles this view
-    @subscriptions.add atom.commands.add 'atom-workspace', 'harookit-atom:toggle': => @toggle()
+    @subscriptions.add atom.commands.add 'atom-workspace', 'harookit:list-toggle': => @toggle()
 
   deactivate: ->
     @modalPanel.destroy()
