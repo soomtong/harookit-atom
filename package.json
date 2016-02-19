@@ -1,18 +1,44 @@
 {
   "name": "harookit-atom",
-  "main": "./lib/harookit-atom",
-  "version": "0.0.0",
-  "description": "A short description of your package",
+  "main": "./lib/main",
+  "version": "0.0.1",
+  "description": "Haroo cloud client app for Atom editor",
   "keywords": [
+    "haroocloud",
+    "paas"
   ],
   "activationCommands": {
-    "atom-workspace": "harookit-atom:toggle"
+    "atom-workspace": [
+      "harookit:list-toggle",
+      "harookit:sign-in",
+      "harookit:sign-out"
+    ]
   },
-  "repository": "https://github.com/atom/harookit-atom",
+  "repository": "https://github.com/soomtong/harookit-atom",
   "license": "MIT",
   "engines": {
     "atom": ">=1.0.0 <2.0.0"
   },
   "dependencies": {
+    "atom-space-pen-views": "^2.1.1"
+  },
+  "configSchema": {
+    "harooCloudHost": {
+      "title": "Haroo cloud host location (for your own service)",
+      "type": "string",
+      "default": "https://haroocloud.com"
+    },
+    "harooCloudUserId": {
+      "title": "User ID",
+      "type": "string",
+      "default": "User ID",
+      "description": "ID for Haroo cloud service"
+    },
+    "harooCloudUserPassword": {
+      "title": "Password",
+      "type": "string",
+      "default": "User Password",
+      "description": "Password for Haroo cloud user ID"
+    }
   }
 }

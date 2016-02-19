@@ -1,20 +1,30 @@
 # See https://atom.io/docs/latest/hacking-atom-package-word-count#menus for more details
-'context-menu':
-  'atom-text-editor': [
-    {
-      'label': 'Toggle harookit-atom'
-      'command': 'harookit-atom:toggle'
-    }
-  ]
 'menu': [
   {
     'label': 'Packages'
     'submenu': [
-      'label': 'harookit-atom'
+      'label': 'Harookit'
       'submenu': [
         {
-          'label': 'Toggle'
-          'command': 'harookit-atom:toggle'
+          'label': 'Account'
+          'submenu': [
+            {
+              'label': 'Sign In'
+              'command': 'harookit:sign-in'
+            },
+            {
+              'label': 'Sign Out'
+              'command': 'harookit:sign-out'
+            },
+            {
+              'label': 'Sign Up'
+              'command': 'harookit:sign-up'
+            }
+          ]
+        },
+        {
+          'label': 'Toggle List Panel'
+          'command': 'harookit:list-toggle'
         }
       ]
     ]

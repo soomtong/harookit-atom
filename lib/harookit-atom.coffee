@@ -1,46 +1,42 @@
-HarookitAtomView = require './harookit-atom-view'
 {CompositeDisposable} = require 'atom'
 
 module.exports = HarookitAtom =
-  harookitAtomView: null
-  modalPanel: null
+  listView: null
   subscriptions: null
 
-  config:
-    harooCloudUserId:
-      title: 'User ID'
-      type: 'string'
-      default: 'User ID'
-      description: 'ID for Haroo cloud service'
-
-    harooCloudUserPassword:
-      title: 'Password'
-      type: 'string'
-      default: 'User Password'
-      description: 'Password for Haroo cloud user ID'
-
-  activate: (state) ->
-    @harookitAtomView = new HarookitAtomView(state.harookitAtomViewState)
-    @modalPanel = atom.workspace.addModalPanel(item: @harookitAtomView.getElement(), visible: false)
-
-    # Events subscribed to in atom's system can be easily cleaned up with a CompositeDisposable
+  activate: (@state) ->
     @subscriptions = new CompositeDisposable
+    @state.attached ?= true if @shouldAttach()
 
-    # Register command that toggles this view
-    @subscriptions.add atom.commands.add 'atom-workspace', 'harookit:list-toggle': => @toggle()
+    @createView() if @state.attached
+
+    @subscriptions.add atom.commands.add('atom-workspace', {
+      'harookit:list-show': => @createView().show()
+      'harookit:list-toggle': => @createView().toggle()
+    })
 
   deactivate: ->
-    @modalPanel.destroy()
     @subscriptions.dispose()
-    @harookitAtomView.destroy()
+    @listView?.deactivate()
+    @listView = null
 
   serialize: ->
-    harookitAtomViewState: @harookitAtomView.serialize()
-
-  toggle: ->
-    console.log 'HarookitAtom was toggled!'
-
-    if @modalPanel.isVisible()
-      @modalPanel.hide()
+    if @listView?
+      @listView.serialize()
     else
-      @modalPanel.show()
+      @state
+
+  createView: ->
+    unless @listView?
+      ListView = require './harookit-atom-view'
+      @listView = new ListView(@state)
+    @listView
+
+  shouldAttach: ->
+    projectPath = atom.project.getPaths()[0]
+    if atom.workspace.getActivePaneItem()
+      false
+    else if path.basename(projectPath) is '.git'
+      projectPath is atom.getLoadSettings().pathToOpen
+    else
+      true

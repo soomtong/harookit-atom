@@ -1,4 +1,5 @@
-# harookit-atom package
+harookit-atom package
+=====================
 
 A short description of your package.
 

@@ -20,3 +20,6 @@ class HarookitAtomView
 
   getElement: ->
     @element
+
+  show: ->
+    console.log "this is view"
