@@ -7,5 +7,7 @@
 
 # For more detailed documentation see
 # https://atom.io/docs/latest/behind-atom-keymaps-in-depth
-'atom-workspace':
-  'ctrl-shift-\': 'harookit:list-toggle'
+'.platform-darwin':
+  'cmd-ctrl-\\': 'harookit:list-toggle'
+  'cmd-ctrl-|': 'harookit:reveal-active-file'
+  'cmd-ctrl-0': 'harookit:list-focus'
