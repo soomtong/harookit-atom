@@ -3,6 +3,8 @@
 
 LocalStorage = window.localStorage
 
+DocumentView = require './document-view'
+
 toggleConfig = (keyPath) ->
   atom.config.set(keyPath, not atom.config.get(keyPath))
 
@@ -11,10 +13,10 @@ class HarookitAtomView extends View
   panel: null
 
   @content: ->
-    @div class: 'harookit-list-resizer tool-panel', 'data-show-on-left-side': atom.config.get('harookit-atom.showOnLeftSide'), =>
-      @div class: 'harookit-list-scroller order--center', outlet: 'scroller', =>
-        @ol class: 'harookit-list full-menu list-tree has-collapsable-children focusable-panel', tabindex: -1, outlet: 'list'
-      @div class: 'harookit-list-resize-handle', outlet: 'resizeHandle'
+    @div class: 'harookit-atom-resizer tool-panel', 'data-show-on-right-side': !atom.config.get('harookit-atom.showOnLeftSide'), =>
+      @div class: 'harookit-atom-scroller order--center', outlet: 'scroller', =>
+        @ol class: 'harookit-atom full-menu list-tree has-collapsable-children focusable-panel', tabindex: -1, outlet: 'list'
+      @div class: 'harookit-atom-resize-handle', outlet: 'resizeHandle'
 
   initialize: (state) ->
     console.log "initialized()", state
@@ -45,6 +47,7 @@ class HarookitAtomView extends View
       { name: 'untitled 3', title: 'No one exist here', createdAt: new Date() }
       { name: 'untitled 4', title: 'No one exist here', createdAt: new Date() }
     ]
+
 
   detached: ->
     console.log "detached()"
@@ -116,6 +119,27 @@ class HarookitAtomView extends View
       @unfocus()
     else
       @show()
+
+  resizeStarted: =>
+    $(document).on('mousemove', @resizeTreeView)
+    $(document).on('mouseup', @resizeStopped)
+
+  resizeStopped: =>
+    $(document).off('mousemove', @resizeTreeView)
+    $(document).off('mouseup', @resizeStopped)
+
+  resizeTreeView: ({pageX, which}) =>
+    return @resizeStopped() unless which is 1
+
+    if !atom.config.get('harookit-atom.showOnLeftSide')
+      width = @outerWidth() + @offset().left - pageX
+    else
+      width = pageX - @offset().left
+    @width(width)
+
+  resizeToFitContent: ->
+    @width(1) # Shrink to measure the minimum width of list
+    @width(@list.outerWidth())
 
   selectedEntry: ->
     @list[0].querySelector('.selected')

@@ -1,8 +1,87 @@
-// The ui-variables file is provided by base themes provided by Atom.
-//
-// See https://github.com/atom/atom-dark-ui/blob/master/styles/ui-variables.less
-// for a full listing of what's available.
 @import "ui-variables";
 
+[theme-one-dark-ui-layoutmode="auto"] .harookit-atom-resizer[data-show-on-right-side="true"] {
+  border-left: 1px solid #181a1f;
+}
+
+.harookit-atom-resizer {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  cursor: default;
+  -webkit-user-select: none;
+  min-width: 100px;
+  width: 200px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+
+  // use these classes to re-order
+  // using a value in-between is fine too, e.g. order: -3;
+  & > .order--start  { order: -10; }
+  & > .order--center { order:   0; }
+  & > .order--end    { order:  10; }
+
+  .harookit-atom-resize-handle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 10px;
+    cursor: col-resize;
+    z-index: 3;
+  }
+
+  &[data-show-on-right-side='true'] {
+    .harookit-atom-resize-handle {
+      left: -5px;
+    }
+  }
+
+  &[data-show-on-right-side='false'] {
+    .harookit-atom-resize-handle {
+      right: -5px;
+    }
+  }
+}
+
+.harookit-atom-scroller {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  overflow: auto;
+}
+
 .harookit-atom {
+  flex-grow: 1;
+  flex-shrink: 0;
+  min-width: -webkit-min-content;
+  min-height: 100%;
+  padding-left: @component-icon-padding;
+  padding-right: @component-padding;
+  position: relative;
+
+  .header {
+    position: relative;
+  }
+
+  .list-tree {
+    position: static;
+  }
+
+  .entry {
+    // This fixes #110, see that issue for more details
+    &:before {
+      content: '';
+      position: absolute;
+    }
+  }
+}
+
+.platform-win32 {
+  .harookit-atom-resizer {
+    .harookit-atom-resize-handle {
+      cursor: ew-resize;
+    }
+  }
 }
