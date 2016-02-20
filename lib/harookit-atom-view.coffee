@@ -2,8 +2,7 @@ path = require 'path'
 shell = require 'shell'
 
 _ = require 'underscore-plus'
-{BufferedProcess, CompositeDisposable} = require 'atom'
-{repoForPath, getStyleObject} = require "./helpers"
+{CompositeDisposable} = require 'atom'
 {$, View} = require 'atom-space-pen-views'
 fs = require 'fs-plus'
 
@@ -22,10 +21,10 @@ class HarookitAtomView extends View
   panel: null
 
   @content: ->
-    @div class: 'harookit-atom-resizer tool-panel', 'data-show-on-right-side': !atom.config.get('harookit-atom.showOnLeftSide'), =>
-      @div class: 'harookit-atom-scroller order--center', outlet: 'scroller', =>
-        @ol class: 'harookit-atom full-menu list-tree has-collapsable-children focusable-panel', tabindex: -1, outlet: 'list'
-      @div class: 'harookit-atom-resize-handle', outlet: 'resizeHandle'
+    @div class: 'harookit-atom-resizer tree-view-resizer tool-panel', 'data-show-on-right-side': !atom.config.get('harookit-atom.showOnLeftSide'), =>
+      @div class: 'harookit-atom-scroller tree-view-scroller order--center', outlet: 'scroller', =>
+        @ol class: 'harookit-atom ###tree-view full-menu### list-tree has-collapsable-children focusable-panel', tabindex: -1, outlet: 'list'
+      @div class: 'harookit-atom-resize-handle tree-view-resize-handle', outlet: 'resizeHandle'
 
   initialize: (state) ->
     console.log "initialized()", state
@@ -45,7 +44,7 @@ class HarookitAtomView extends View
 #    @updateList(state.harooCloudConfig)
 
     @updateRoots(state.directoryExpansionStates)
-    @selectEntry(@roots[0])
+#    @selectEntry(@roots[0])
 
     @width(state.width) if state.width > 0
 
@@ -130,7 +129,18 @@ class HarookitAtomView extends View
     @detach() if @panel?
 
   handleEvents: ->
-    console.log "bind Event"
+    @on 'dblclick', '.harookit-atom-resize-handle', =>
+      @resizeToFitContent()
+    @on 'mousedown', '.tree-view-resize-handle', (e) =>
+      @resizeStarted(e)
+
+    @on 'click', '.entry', (e) =>
+      return if e.target.classList.contains('entries')
+
+      @entryClicked(e) unless e.shiftKey or e.metaKey or e.ctrlKey
+    @on 'mousedown', '.entry', (e) =>
+      @onMouseDown(e)
+
     @disposables.add atom.config.onDidChange 'harookit-atom.showOnLeftSide', ({newValue}) =>
       console.log "toggle showOnLeftSide config data"
       @onSideToggled(newValue)
@@ -223,6 +233,53 @@ class HarookitAtomView extends View
 
   toggleSide: ->
     toggleConfig('harookit-atom.showOnLeftSide')
+
+  onMouseDown: (e) ->
+    e.stopPropagation()
+    console.log "onMouseDown(e)"
+
+#    if @multiSelectEnabled() and
+#      e.currentTarget.classList.contains('selected') and
+#      # mouse right click or ctrl click as right click on darwin platforms
+#      (e.button is 2 or e.ctrlKey and process.platform is 'darwin')
+#      return
+
+    entryToSelect = e.currentTarget
+
+    if e.shiftKey
+#      @selectContinuousEntries(entryToSelect)
+#      @showMultiSelectMenu()
+    else if e.metaKey or (e.ctrlKey and process.platform isnt 'darwin')
+#      @selectMultipleEntries(entryToSelect)
+#      @showMultiSelectMenu() if @selectedPaths().length > 1
+    else
+      @selectEntry(entryToSelect)
+#      @showFullMenu()
+
+  entryClicked: (e) ->
+    entry = e.currentTarget
+    switch e.originalEvent?.detail ? 1
+      when 1
+        @selectEntry(entry)
+        console.log "1: select entry! from entryClicked(e)"
+#        if entry instanceof FileView
+#          if entry.getPath() is atom.workspace.getActivePaneItem()?.getPath?()
+#            @focus()
+#          else
+#            @openedItem = atom.workspace.open(entry.getPath(), pending: true)
+#        else if entry instanceof DirectoryView
+#          entry.toggleExpansion(isRecursive)
+      when 2
+        console.log "2: select entry! from entryClicked(e)"
+#        if entry instanceof FileView
+#          @openedItem.then((item) -> item.terminatePendingState?())
+#          unless entry.getPath() is atom.workspace.getActivePaneItem()?.getPath?()
+#            @unfocus()
+#        else if entry instanceof DirectoryView
+#          entry.toggleExpansion(isRecursive)
+
+    false
+
 
   onSideToggled: (newValue) ->
     @element.dataset.showOnLeftSide = newValue
