@@ -1,9 +1,18 @@
+path = require 'path'
+shell = require 'shell'
+
+_ = require 'underscore-plus'
 {BufferedProcess, CompositeDisposable} = require 'atom'
+{repoForPath, getStyleObject} = require "./helpers"
 {$, View} = require 'atom-space-pen-views'
+fs = require 'fs-plus'
 
 LocalStorage = window.localStorage
 
 DocumentView = require './document-view'
+Directory = require './directory'
+DirectoryView = require './directory-view'
+FileView = require './file-view'
 
 toggleConfig = (keyPath) ->
   atom.config.set(keyPath, not atom.config.get(keyPath))
@@ -22,16 +31,66 @@ class HarookitAtomView extends View
     console.log "initialized()", state
     @disposables = new CompositeDisposable
     @focusAfterAttach = false
-    @documents = []
+    @roots = []
     @scrollLeftAfterAttach = -1
     @scrollTopAfterAttach = -1
+    @selectedPath = null
+    @ignoredPatterns = []
+
+    @documents = []
     @selected = null
 
     @handleEvents()
 
-    @updateList(state.harooCloudConfig)
+#    @updateList(state.harooCloudConfig)
+
+    @updateRoots(state.directoryExpansionStates)
+    @selectEntry(@roots[0])
 
     @width(state.width) if state.width > 0
+
+  loadIgnoredPatterns: ->
+    @ignoredPatterns.length = 0
+    return unless atom.config.get('tree-view.hideIgnoredNames')
+
+#    Minimatch ?= require('minimatch').Minimatch
+
+    ignoredNames = atom.config.get('core.ignoredNames') ? []
+    ignoredNames = [ignoredNames] if typeof ignoredNames is 'string'
+    for ignoredName in ignoredNames when ignoredName
+      try
+        @ignoredPatterns.push({})
+      catch error
+        atom.notifications.addWarning("Error parsing ignore pattern (#{ignoredName})", detail: error.message)
+
+  updateRoots: (expansionStates={}) ->
+    oldExpansionStates = {}
+    for root in @roots
+      oldExpansionStates[root.directory.path] = root.directory.serializeExpansionState()
+      root.directory.destroy()
+      root.remove()
+
+    @loadIgnoredPatterns()
+
+    @roots = for projectPath in atom.project.getPaths()
+      directory = new Directory({
+        name: path.basename(projectPath)
+        fullPath: projectPath
+        symlink: false
+        isRoot: true
+        expansionState: expansionStates[projectPath] ?
+          oldExpansionStates[projectPath] ?
+        {isExpanded: true}
+        @ignoredPatterns
+      })
+      root = new DirectoryView()
+      root.initialize(directory)
+      @list[0].appendChild(root)
+      root
+
+    if @attachAfterProjectPathSet
+      @attach()
+      @attachAfterProjectPathSet = false
 
   attached: ->
     console.log "attached()"

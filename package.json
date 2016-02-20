@@ -21,6 +21,9 @@
   },
   "dependencies": {
     "atom-space-pen-views": "^2.1.1",
+    "fs-plus": "*",
+    "pathwatcher": "*",
+    "underscore-plus": "*",
     "event-kit": "*"
   },
   "configSchema": {
