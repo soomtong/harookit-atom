@@ -23,7 +23,7 @@ class HarookitAtomView extends View
   @content: ->
     @div class: 'harookit-atom-resizer tree-view-resizer tool-panel', 'data-show-on-right-side': !atom.config.get('harookit-atom.showOnLeftSide'), =>
       @div class: 'harookit-atom-scroller tree-view-scroller order--center', outlet: 'scroller', =>
-        @ol class: 'harookit-atom ###tree-view full-menu### list-tree has-collapsable-children focusable-panel', tabindex: -1, outlet: 'list'
+        @ol class: 'harookit-atom list-tree has-collapsable-children focusable-panel', tabindex: -1, outlet: 'list'
       @div class: 'harookit-atom-resize-handle tree-view-resize-handle', outlet: 'resizeHandle'
 
   initialize: (state) ->
@@ -238,23 +238,13 @@ class HarookitAtomView extends View
     e.stopPropagation()
     console.log "onMouseDown(e)"
 
-#    if @multiSelectEnabled() and
-#      e.currentTarget.classList.contains('selected') and
-#      # mouse right click or ctrl click as right click on darwin platforms
-#      (e.button is 2 or e.ctrlKey and process.platform is 'darwin')
-#      return
+    # mouse right click or ctrl click as right click on darwin platforms
+    if e.currentTarget.classList.contains('selected') and (e.button is 2 or e.ctrlKey and process.platform is 'darwin')
+      console.log "context button clicked!"
+      return
 
     entryToSelect = e.currentTarget
-
-    if e.shiftKey
-#      @selectContinuousEntries(entryToSelect)
-#      @showMultiSelectMenu()
-    else if e.metaKey or (e.ctrlKey and process.platform isnt 'darwin')
-#      @selectMultipleEntries(entryToSelect)
-#      @showMultiSelectMenu() if @selectedPaths().length > 1
-    else
-      @selectEntry(entryToSelect)
-#      @showFullMenu()
+    @selectEntry(entryToSelect)
 
   entryClicked: (e) ->
     entry = e.currentTarget
