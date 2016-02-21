@@ -23,7 +23,7 @@ class HarookitAtomView extends View
   @content: ->
     @div class: 'harookit-atom-resizer tree-view-resizer tool-panel', 'data-show-on-right-side': !atom.config.get('harookit-atom.showOnLeftSide'), =>
       @div class: 'harookit-atom-scroller tree-view-scroller order--center', outlet: 'scroller', =>
-        @ol class: 'harookit-atom list-tree has-collapsable-children focusable-panel', tabindex: -1, outlet: 'list'
+        @ol class: 'harookit-atom focusable-panel', tabindex: -1, outlet: 'list'
       @div class: 'harookit-atom-resize-handle tree-view-resize-handle', outlet: 'resizeHandle'
 
   initialize: (state) ->
@@ -41,9 +41,9 @@ class HarookitAtomView extends View
 
     @handleEvents()
 
-#    @updateList(state.harooCloudConfig)
-
+    @updateAccount(state.harooCloudConfig)
     @updateRoots(state.directoryExpansionStates)
+
 #    @selectEntry(@roots[0])
 
     @width(state.width) if state.width > 0
@@ -61,6 +61,12 @@ class HarookitAtomView extends View
         @ignoredPatterns.push({})
       catch error
         atom.notifications.addWarning("Error parsing ignore pattern (#{ignoredName})", detail: error.message)
+
+
+  updateAccount: (config={}) ->
+    document = new DocumentView()
+    document.initialize({id: 'soomtong1', token: 'token id'})
+    @list[0].appendChild(document)
 
   updateRoots: (expansionStates={}) ->
     oldExpansionStates = {}
@@ -85,7 +91,8 @@ class HarookitAtomView extends View
       root = new DirectoryView()
       root.initialize(directory)
       @list[0].appendChild(root)
-      root
+#      root
+
 
     if @attachAfterProjectPathSet
       @attach()
@@ -214,7 +221,7 @@ class HarookitAtomView extends View
     @list[0].querySelector('.selected')
 
   selectEntry: (entry) ->
-    return unless entry?
+    return unless entry? and entry.getPath?
 
     @selectedPath = entry.getPath()
 

@@ -7,9 +7,10 @@ class DirectoryView extends HTMLElement
   initialize: (@directory) ->
     @subscriptions = new CompositeDisposable()
     @subscriptions.add @directory.onDidDestroy => @subscriptions.dispose()
+
     @subscribeToDirectory()
 
-    @classList.add('directory', 'entry',  'list-nested-item',  'collapsed')
+    @classList.add('directory', 'entry', 'list-nested-item')
 
     @header = document.createElement('div')
     @header.classList.add('header', 'list-item')
@@ -20,31 +21,17 @@ class DirectoryView extends HTMLElement
     @entries = document.createElement('ol')
     @entries.classList.add('entries', 'list-tree')
 
-    if @directory.symlink
-      iconClass = 'icon-file-symlink-directory'
-    else
-      iconClass = 'icon-file-directory'
-      if @directory.isRoot
-        iconClass = 'icon-repo' if repoForPath(@directory.path)?.isProjectAtRoot()
-      else
-        iconClass = 'icon-file-submodule' if @directory.submodule
-    @directoryName.classList.add(iconClass)
+    @directoryName.classList.add('icon-database')
     @directoryName.dataset.name = @directory.name
     @directoryName.title = @directory.name
     @directoryName.dataset.path = @directory.path
 
-    if @directory.squashedName?
-      @squashedDirectoryName = document.createElement('span')
-      @squashedDirectoryName.classList.add('squashed-dir')
-      @squashedDirectoryName.textContent = @directory.squashedName
-
-    directoryNameTextNode = document.createTextNode(@directory.name)
+    directoryNameTextNode = document.createTextNode('soomtong (token id)')
 
     @appendChild(@header)
-    if @squashedDirectoryName?
-      @directoryName.appendChild(@squashedDirectoryName)
     @directoryName.appendChild(directoryNameTextNode)
     @header.appendChild(@directoryName)
+
     @appendChild(@entries)
 
     if @directory.isRoot
@@ -61,6 +48,7 @@ class DirectoryView extends HTMLElement
     @classList.add("status-#{@directory.status}") if @directory.status?
 
   subscribeToDirectory: ->
+    console.log "retrieve haroocloud data"
     @subscriptions.add @directory.onDidAddEntries (addedEntries) =>
       return unless @isExpanded
 
@@ -106,6 +94,7 @@ class DirectoryView extends HTMLElement
     if @isExpanded then @collapse(isRecursive) else @expand(isRecursive)
 
   expand: (isRecursive=false) ->
+    console.log "expand()"
     unless @isExpanded
       @isExpanded = true
       @classList.add('expanded')
@@ -119,6 +108,7 @@ class DirectoryView extends HTMLElement
     false
 
   collapse: (isRecursive=false) ->
+    console.log "collapse()"
     @isExpanded = false
 
     if isRecursive

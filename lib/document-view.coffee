@@ -1,36 +1,30 @@
 {CompositeDisposable} = require 'event-kit'
 
-module.exports =
-  class FileView extends HTMLElement
-    initialize: (@file) ->
-      @subscriptions = new CompositeDisposable()
-      @subscriptions.add @file.onDidDestroy => @subscriptions.dispose()
+module.exports = class DocumentView extends HTMLElement
+  initialize: (@file) ->
+    @subscriptions = new CompositeDisposable()
+#    @subscriptions.add @file.onDidDestroy => @subscriptions.dispose()
 
-      @draggable = true
+    @classList.add('directory', 'entry', 'list-nested-item', 'project-root')
 
-      @classList.add('file', 'entry', 'list-item')
+    @header = document.createElement('div')
+    @header.classList.add('header', 'list-item')
 
-      @fileName = document.createElement('span')
-      @fileName.classList.add('name', 'icon')
-      @appendChild(@fileName)
-      @fileName.textContent = @file.name
-      @fileName.title = @file.name
-      @fileName.dataset.name = @file.name
-      @fileName.dataset.path = @file.path
+    @directoryName = document.createElement('span')
+    @directoryName.classList.add('name', 'icon')
 
-#      @fileName.classList.add(FileIcons.getService().iconClassForPath(@file.path))
+    @entries = document.createElement('ol')
+    @entries.classList.add('entries', 'list-tree')
 
-      @subscriptions.add @file.onDidStatusChange => @updateStatus()
-      @updateStatus()
+    @directoryName.classList.add('icon-database')
+    @directoryName.dataset.id = @file.id
+    @directoryName.title = @file.id
+    @directoryName.dataset.token = @file.token
 
-    updateStatus: ->
-      @classList.remove('status-ignored', 'status-modified',  'status-added')
-      @classList.add("status-#{@file.status}") if @file.status?
+    directoryNameTextNode = document.createTextNode(@file.id)
 
-    getPath: ->
-      @fileName.dataset.path
+    @appendChild(@header)
+    @directoryName.appendChild(directoryNameTextNode)
+    @header.appendChild(@directoryName)
 
-    isPathEqual: (pathToCompare) ->
-      @file.isPathEqual(pathToCompare)
-
-module.exports = document.registerElement('harookit-file', prototype: FileView.prototype, extends: 'li')
+module.exports = document.registerElement('harookit-atom-account', prototype: DocumentView.prototype, extends: 'li')

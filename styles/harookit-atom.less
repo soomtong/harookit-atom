@@ -5,10 +5,72 @@
 @import "ui-variables";
 
 .harookit-atom {
+  font-size: 1em;
+  background: #21252b;
+  flex-grow: 1;
+  flex-shrink: 0;
+  min-width: -webkit-min-content;
+  min-height: 100%;
+  padding-left: 5px;
+  padding-right: 10px;
+  position: relative;
+  margin: 0;
+  list-style: none;
+  cursor: default;
+}
+
+.harookit-atom::before {
+  content: "";
+  position: fixed;
+  pointer-events: none;
+  z-index: 1;
+  margin-top: 0.5em;
+  margin-left: -5px;
+  height: 3em;
+  width: 2px;
+  background: #528bff;
+  opacity: 0;
+  transition: opacity .16s;
+}
+
+.harookit-atom .header {
+  position: relative;
+}
+
+.harookit-atom .project-root.project-root:first-child {
+  padding-top: 0.5em;
+}
+
+.harookit-atom .project-root.project-root > .header .name {
+  line-height: 3em;
 }
 
 .harookit-atom-resizer {
   border-left: 1px solid #181a1f;
+}
+
+.harookit-atom .list-nested-item > .list-item::before {
+  text-align: center;
+}
+
+.harookit-atom .list-nested-item > .list-item::before {
+  position: relative;
+  top: -1px;
+  margin-right: 5px;
+}
+
+.harookit-atom .list-nested-item > .list-item::before {
+  font-family: 'Octicons Regular';
+  font-weight: normal;
+  font-style: normal;
+  display: inline-block;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  text-decoration: none;
+  font-size: 12px;
+  width: 12px;
+  height: 12px;
+  content: "\f087";
 }
 
 /* reserved */
@@ -28,3 +90,7 @@
   background-clip: padding-box;
 }
 */
+
+[theme-one-dark-ui-layoutmode="auto"] .harookit-atom .project-root.project-root {
+  padding-top: 0;
+}
