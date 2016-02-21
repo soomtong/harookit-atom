@@ -29,7 +29,6 @@ module.exports =
       @state
 
   createView: ->
-    console.log "createView()"
     unless @harookitView?
       HarookitView = require './harookit-atom-view'
       @harookitView = new HarookitView(@state)

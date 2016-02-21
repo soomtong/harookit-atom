@@ -8,9 +8,9 @@ fs = require 'fs-plus'
 
 LocalStorage = window.localStorage
 
+AccountView = require './account-view'
+Document = require './directory'
 DocumentView = require './document-view'
-Directory = require './directory'
-DirectoryView = require './directory-view'
 FileView = require './file-view'
 
 toggleConfig = (keyPath) ->
@@ -42,43 +42,23 @@ class HarookitAtomView extends View
     @handleEvents()
 
     @updateAccount(state.harooCloudConfig)
-    @updateRoots(state.directoryExpansionStates)
+    @updateDocuments(state.accessToken)
 
 #    @selectEntry(@roots[0])
 
     @width(state.width) if state.width > 0
 
-  loadIgnoredPatterns: ->
-    @ignoredPatterns.length = 0
-    return unless atom.config.get('tree-view.hideIgnoredNames')
-
-#    Minimatch ?= require('minimatch').Minimatch
-
-    ignoredNames = atom.config.get('core.ignoredNames') ? []
-    ignoredNames = [ignoredNames] if typeof ignoredNames is 'string'
-    for ignoredName in ignoredNames when ignoredName
-      try
-        @ignoredPatterns.push({})
-      catch error
-        atom.notifications.addWarning("Error parsing ignore pattern (#{ignoredName})", detail: error.message)
-
-
   updateAccount: (config={}) ->
-    document = new DocumentView()
+    document = new AccountView()
     document.initialize({id: 'soomtong1', token: 'token id'})
     @list[0].appendChild(document)
+    document
 
-  updateRoots: (expansionStates={}) ->
+  updateDocuments: (expansionStates={}) ->
     oldExpansionStates = {}
-    for root in @roots
-      oldExpansionStates[root.directory.path] = root.directory.serializeExpansionState()
-      root.directory.destroy()
-      root.remove()
-
-    @loadIgnoredPatterns()
 
     @roots = for projectPath in atom.project.getPaths()
-      directory = new Directory({
+      directory = new Document({
         name: path.basename(projectPath)
         fullPath: projectPath
         symlink: false
@@ -86,33 +66,20 @@ class HarookitAtomView extends View
         expansionState: expansionStates[projectPath] ?
           oldExpansionStates[projectPath] ?
         {isExpanded: true}
-        @ignoredPatterns
       })
-      root = new DirectoryView()
+      root = new DocumentView()
       root.initialize(directory)
       @list[0].appendChild(root)
-#      root
-
+      root
 
     if @attachAfterProjectPathSet
       @attach()
       @attachAfterProjectPathSet = false
 
   attached: ->
-    console.log "attached()"
     @focus() if @focusAfterAttach
     @scroller.scrollLeft(@scrollLeftAfterAttach) if @scrollLeftAfterAttach > 0
     @scrollTop(@scrollTopAfterAttach) if @scrollTopAfterAttach > 0
-
-  updateList: (config) ->
-    console.log 'updateList()', config
-    @documents = [
-      { name: 'untitled 1', title: 'No one exist here', createdAt: new Date() }
-      { name: 'untitled 2', title: 'No one exist here', createdAt: new Date() }
-      { name: 'untitled 3', title: 'No one exist here', createdAt: new Date() }
-      { name: 'untitled 4', title: 'No one exist here', createdAt: new Date() }
-    ]
-
 
   detached: ->
     console.log "detached()"
@@ -153,19 +120,16 @@ class HarookitAtomView extends View
       @onSideToggled(newValue)
 
   toggle: ->
-    console.log "toggle()"
     if @isVisible()
       @detach()
     else
       @show()
 
   show: ->
-    console.log "show()"
     @attach()
     @focus()
 
   attach: ->
-    console.log "attach()"
     @panel ?=
       if atom.config.get('harookit-atom.showOnLeftSide')
         atom.workspace.addLeftPanel(item: this)
@@ -173,7 +137,6 @@ class HarookitAtomView extends View
         atom.workspace.addRightPanel(item: this)
 
   detach: ->
-    console.log "detach()"
     @scrollLeftAfterAttach = @scroller.scrollLeft()
     @scrollTopAfterAttach = @scrollTop()
 
@@ -243,7 +206,6 @@ class HarookitAtomView extends View
 
   onMouseDown: (e) ->
     e.stopPropagation()
-    console.log "onMouseDown(e)"
 
     # mouse right click or ctrl click as right click on darwin platforms
     if e.currentTarget.classList.contains('selected') and (e.button is 2 or e.ctrlKey and process.platform is 'darwin')
@@ -276,7 +238,6 @@ class HarookitAtomView extends View
 #          entry.toggleExpansion(isRecursive)
 
     false
-
 
   onSideToggled: (newValue) ->
     @element.dataset.showOnLeftSide = newValue

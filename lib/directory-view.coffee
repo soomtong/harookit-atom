@@ -10,7 +10,7 @@ class DirectoryView extends HTMLElement
 
     @subscribeToDirectory()
 
-    @classList.add('directory', 'entry', 'list-nested-item')
+    @classList.add('entry', 'list-nested-item')
 
     @header = document.createElement('div')
     @header.classList.add('header', 'list-item')
@@ -21,27 +21,13 @@ class DirectoryView extends HTMLElement
     @entries = document.createElement('ol')
     @entries.classList.add('entries', 'list-tree')
 
-    @directoryName.classList.add('icon-database')
-    @directoryName.dataset.name = @directory.name
-    @directoryName.title = @directory.name
-    @directoryName.dataset.path = @directory.path
-
-    directoryNameTextNode = document.createTextNode('soomtong (token id)')
-
-    @appendChild(@header)
-    @directoryName.appendChild(directoryNameTextNode)
-    @header.appendChild(@directoryName)
-
     @appendChild(@entries)
 
-    if @directory.isRoot
-      @classList.add('project-root')
-    else
-      @draggable = true
-      @subscriptions.add @directory.onDidStatusChange => @updateStatus()
-      @updateStatus()
+    @draggable = true
+    @subscriptions.add @directory.onDidStatusChange => @updateStatus()
+    @updateStatus()
 
-    @expand() if @directory.expansionState.isExpanded
+    @expand()
 
   updateStatus: ->
     @classList.remove('status-ignored', 'status-modified', 'status-added')
@@ -73,7 +59,8 @@ class DirectoryView extends HTMLElement
 
   createViewForEntry: (entry) ->
     if entry instanceof Directory
-      view = new DirectoryElement()
+#      view = new DirectoryElement()
+      view = new FileView()
     else
       view = new FileView()
     view.initialize(entry)
@@ -94,11 +81,10 @@ class DirectoryView extends HTMLElement
     if @isExpanded then @collapse(isRecursive) else @expand(isRecursive)
 
   expand: (isRecursive=false) ->
-    console.log "expand()"
+    console.log "expand()", @isExpanded, isRecursive
+    console.info @directory.expand
     unless @isExpanded
       @isExpanded = true
-      @classList.add('expanded')
-      @classList.remove('collapsed')
       @directory.expand()
 
     if isRecursive
@@ -107,18 +93,6 @@ class DirectoryView extends HTMLElement
 
     false
 
-  collapse: (isRecursive=false) ->
-    console.log "collapse()"
-    @isExpanded = false
-
-    if isRecursive
-      for entry in @entries.children when entry.isExpanded
-        entry.collapse(true)
-
-    @classList.remove('expanded')
-    @classList.add('collapsed')
-    @directory.collapse()
-    @entries.innerHTML = ''
 
 DirectoryElement = document.registerElement('harookit-atom-directory', prototype: DirectoryView.prototype, extends: 'li')
 module.exports = DirectoryElement
