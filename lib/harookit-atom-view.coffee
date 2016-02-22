@@ -118,6 +118,9 @@ class HarookitAtomView extends View
     @on 'mousedown', '.entry', (e) =>
       @onMouseDown(e)
 
+    atom.commands.add @element,
+      'harookit-atom:open-selected-entry': => @openSelectedEntry()
+
     @disposables.add atom.config.onDidChange 'harookit-atom.showOnLeftSide', ({newValue}) =>
       console.log "toggle showOnLeftSide config data"
       @onSideToggled(newValue)
@@ -190,7 +193,6 @@ class HarookitAtomView extends View
     return unless entry? and entry.getPath?
 
     @selectedPath = entry.getPath()
-    console.info @selectedPath
 
     selectedEntries = @getSelectedEntries()
     if selectedEntries.length > 1 or selectedEntries[0] isnt entry
@@ -224,22 +226,18 @@ class HarookitAtomView extends View
     switch e.originalEvent?.detail ? 1
       when 1
         @selectEntry(entry)
-        console.log "1: select entry! from entryClicked(e)"
-#        if entry instanceof FileView
-#          if entry.getPath() is atom.workspace.getActivePaneItem()?.getPath?()
-#            @focus()
-#          else
-#            @openedItem = atom.workspace.open(entry.getPath(), pending: true)
-#        else if entry instanceof DirectoryView
-#          entry.toggleExpansion(isRecursive)
+        console.log "single clicked: todo) open as pending"
+        if entry instanceof ItemView
+          if entry.getPath() is atom.workspace.getActivePaneItem()?.getPath?()
+            @focus()
+          else
+            @openedItem = atom.workspace.open(entry.getPath(), pending: true)
       when 2
-        console.log "2: select entry! from entryClicked(e)"
-#        if entry instanceof FileView
-#          @openedItem.then((item) -> item.terminatePendingState?())
-#          unless entry.getPath() is atom.workspace.getActivePaneItem()?.getPath?()
-#            @unfocus()
-#        else if entry instanceof DirectoryView
-#          entry.toggleExpansion(isRecursive)
+        console.log "double clicked: todo) open as download"
+        if entry instanceof ItemView
+          @openedItem.then((item) -> item.terminatePendingState?())
+          unless entry.getPath() is atom.workspace.getActivePaneItem()?.getPath?()
+            @unfocus()
 
     false
 
