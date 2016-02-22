@@ -18,6 +18,7 @@ class DefaultFileIcons
     else if fs.isBinaryExtension(extension)
       'icon-file-binary'
     else
-      'icon-file-text'
+#      'icon-file-text'
+      'icon-book'
 
 module.exports = DefaultFileIcons

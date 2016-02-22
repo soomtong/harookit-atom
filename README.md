@@ -1,6 +1,17 @@
 harookit-atom package
 =====================
 
-A short description of your package.
+HarooCloud sample app for atom editor
 
-![A screenshot of your package](https://f.cloud.github.com/assets/69169/2290250/c35d867a-a017-11e3-86be-cd7c5bf3ff9b.gif)
+### Todo
+
+- [ ] UI
+- [ ] Mock-up
+- [ ] Create Account
+- [ ] Sign in
+- [ ] Open File
+- [ ] Update Opened File
+- [ ] Save File
+- [ ] Refresh for Account (click repository icon or account name)
+- [ ] Show Loading sign (left side of account name)
+- [ ] Delete File (right click context menu)
