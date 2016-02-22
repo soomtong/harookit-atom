@@ -3,7 +3,6 @@
 module.exports = class AccountView extends HTMLElement
   initialize: (@file) ->
     @subscriptions = new CompositeDisposable()
-    #    @subscriptions.add @file.onDidDestroy => @subscriptions.dispose()
 
     @classList.add('entry', 'list-nested-item', 'project-root')
 

@@ -9,9 +9,7 @@ fs = require 'fs-plus'
 LocalStorage = window.localStorage
 
 AccountView = require './account-view'
-Document = require './directory'
-DocumentView = require './document-view'
-FileView = require './file-view'
+ItemView = require './item-view'
 
 toggleConfig = (keyPath) ->
   atom.config.set(keyPath, not atom.config.get(keyPath))
@@ -23,14 +21,13 @@ class HarookitAtomView extends View
   @content: ->
     @div class: 'harookit-atom-resizer tree-view-resizer tool-panel', 'data-show-on-right-side': !atom.config.get('harookit-atom.showOnLeftSide'), =>
       @div class: 'harookit-atom-scroller tree-view-scroller order--center', outlet: 'scroller', =>
-        @ol class: 'harookit-atom focusable-panel', tabindex: -1, outlet: 'list'
+        @ol class: 'harookit-atom list-tree focusable-panel', tabindex: -1, outlet: 'list'
       @div class: 'harookit-atom-resize-handle tree-view-resize-handle', outlet: 'resizeHandle'
 
   initialize: (state) ->
     console.log "initialized()", state
     @disposables = new CompositeDisposable
     @focusAfterAttach = false
-    @roots = []
     @scrollLeftAfterAttach = -1
     @scrollTopAfterAttach = -1
     @selectedPath = null
@@ -42,39 +39,45 @@ class HarookitAtomView extends View
     @handleEvents()
 
     @updateAccount(state.harooCloudConfig)
-    @updateDocuments(state.accessToken)
-
-#    @selectEntry(@roots[0])
+    @updateItems(state.accessToken)
 
     @width(state.width) if state.width > 0
 
   updateAccount: (config={}) ->
-    document = new AccountView()
-    document.initialize({id: 'soomtong1', token: 'token id'})
-    @list[0].appendChild(document)
-    document
+    account = new AccountView()
+    account.initialize({id: 'soomtong1', token: 'token id'})
+    @list[0].appendChild(account)
+    account
 
-  updateDocuments: (expansionStates={}) ->
-    oldExpansionStates = {}
+  updateItems: (accessToken={}) ->
+#    retrieve by access token
 
-    @roots = for projectPath in atom.project.getPaths()
-      directory = new Document({
-        name: path.basename(projectPath)
-        fullPath: projectPath
-        symlink: false
-        isRoot: true
-        expansionState: expansionStates[projectPath] ?
-          oldExpansionStates[projectPath] ?
-        {isExpanded: true}
-      })
-      root = new DocumentView()
-      root.initialize(directory)
-      @list[0].appendChild(root)
-      root
+    results = [
+      {
+        title: "title 2"
+        summery: "summer 2"
+        name: "file name 2"
+        path: "file path 2"
+      }
+      {
+        title: "title 1"
+        summery: "summer 1"
+        name: "file name 1"
+        path: "file path 1"
+      }
+    ]
+
+    for entry in results
+      @list[0].appendChild(@createViewForEntry(entry))
 
     if @attachAfterProjectPathSet
       @attach()
       @attachAfterProjectPathSet = false
+
+  createViewForEntry: (entry) ->
+    item = new ItemView()
+    item.initialize(entry)
+    item
 
   attached: ->
     @focus() if @focusAfterAttach
@@ -187,6 +190,7 @@ class HarookitAtomView extends View
     return unless entry? and entry.getPath?
 
     @selectedPath = entry.getPath()
+    console.info @selectedPath
 
     selectedEntries = @getSelectedEntries()
     if selectedEntries.length > 1 or selectedEntries[0] isnt entry
@@ -238,6 +242,14 @@ class HarookitAtomView extends View
 #          entry.toggleExpansion(isRecursive)
 
     false
+
+  openSelectedEntry: (options={}, expandDirectory=false) ->
+    selectedEntry = @selectedEntry()
+    uri = selectedEntry.getPath()
+    item = atom.workspace.getActivePane()?.itemForURI(uri)
+    if item? and not options.pending
+      item.terminatePendingState?()
+    atom.workspace.open(uri, options)
 
   onSideToggled: (newValue) ->
     @element.dataset.showOnLeftSide = newValue

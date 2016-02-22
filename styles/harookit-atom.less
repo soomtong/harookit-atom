@@ -1,7 +1,3 @@
-// The ui-variables file is provided by base themes provided by Atom.
-//
-// See https://github.com/atom/atom-dark-ui/blob/master/styles/ui-variables.less
-// for a full listing of what's available.
 @import "ui-variables";
 
 .harookit-atom {
@@ -73,24 +69,11 @@
   content: "\f087";
 }
 
-/* reserved */
-/*
-[theme-one-dark-ui-layoutmode="auto"] .harookit-atom-resizer[data-show-on-right-side="true"] {
-  border-left: 1px solid #181a1f;
+.harookit-atom .file {
+  padding-left: 2px;
 }
-.harookit-atom .project-root.project-root > .header .name {
-  line-height: 3em;
-}
-.theme-one-dark-ui .harookit-atom .project-root.project-root::before {
-  border-top: 1px solid transparent;
-  background-clip: padding-box;
-}
-.harookit-atom .project-root.project-root:before {
-  height: 3em;
-  background-clip: padding-box;
-}
-*/
 
+/* patch theme */
 [theme-one-dark-ui-layoutmode="auto"] .harookit-atom .project-root.project-root {
   padding-top: 0;
 }
