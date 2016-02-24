@@ -1,22 +1,29 @@
+RepositoryView = require './repository-view'
+AccountView = require './account-view'
+
 {CompositeDisposable} = require 'atom'
 
 module.exports = 
-  harookitView: null
   subscriptions: null
+  harookitView: null
+  harookitToken: null
 
   activate: (@state) ->
+    console.info "activate()"
+
     @subscriptions = new CompositeDisposable
-    @state.attached ?= true if @shouldAttach()
 
-    @createView() if @state.attached
+#    @state.attached ?= true if @shouldAttach()
+    @state.accessToken = @getAccessToken()
 
-    @subscriptions.add atom.commands.add('atom-workspace', {
-      'harookit:list-show': => @createView().show()
-      'harookit:list-toggle': => @createView().toggle()
-      'harookit:toggle-side': => @createView().toggleSide()
-    })
+#    console.log  @state.attached
+#    @createView() if @state.attached
+
+    @createView()
 
   deactivate: ->
+    console.info "deactivate()"
+
     @subscriptions.dispose()
     @harookitView?.deactivate()
     @harookitView = null
@@ -28,15 +35,40 @@ module.exports =
     else
       @state
 
+  getAccessToken: ->
+    @harookitToken = atom.config.get('harookit-account-token')
+
   createView: ->
-    unless @harookitView?
-      HarookitView = require './harookit-atom-view'
-      @harookitView = new HarookitView(@state)
-    @harookitView
+    console.info "createView()"
+    if @harookitToken
+      @subscriptions.add atom.commands.add('atom-workspace', {
+        'harookit:list-show': => @createView().show()
+        'harookit:list-toggle': => @createView().toggle()
+        'harookit:toggle-side': => @createView().toggleSide()
+        'harookit:sign-out': => @signOut()
+      })
+      @harookitView = new RepositoryView(@state)
+      @harookitView
+    else
+      @subscriptions.add atom.commands.add('atom-workspace', {
+        'harookit:list-toggle': => @signIn()
+        'harookit:sign-in': => @signIn()
+        'harookit:sign-up': => @signUp()
+      })
 
   shouldAttach: ->
-    console.log "shouldAttach()", atom.project.getPaths()[0]
+    console.log "shouldAttach()", atom.workspace.getActivePaneItem()
     if atom.workspace.getActivePaneItem()
       false
     else
       true
+
+  signIn: ->
+    console.log "account sign in", @harookitView
+    @harookitView = AccountView.activate()
+    @harookitView.toggle()
+    console.log 'go sign in'
+
+  signUp: ->
+
+  signOut: ->

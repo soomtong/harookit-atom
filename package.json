@@ -9,9 +9,6 @@
   ],
   "activationCommands": {
     "atom-workspace": [
-      "harookit:list-toggle",
-      "harookit:sign-in",
-      "harookit:sign-out"
     ]
   },
   "repository": "https://github.com/soomtong/harookit-atom",

@@ -5,7 +5,7 @@ HarooCloud sample app for atom editor
 
 ### Todo
 
-- [ ] UI
+- [x] UI
 - [ ] Mock-up
 - [ ] Create Account
 - [ ] Sign in

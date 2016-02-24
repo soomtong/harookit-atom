@@ -1,29 +1,72 @@
-{CompositeDisposable} = require 'event-kit'
+{$, TextEditorView, View}  = require 'atom-space-pen-views'
 
-module.exports = class AccountView extends HTMLElement
-  initialize: (@file) ->
-    @subscriptions = new CompositeDisposable()
+module.exports =
+  class AccountPanel extends View
+    @activate: ->
+      new AccountPanel
 
-    @classList.add('entry', 'list-nested-item', 'project-root')
+    @content: ->
+      @div class: 'harookit-atom', =>
+        @h4 class: 'title', outlet: 'status'
+        @subview 'miniEditor', new TextEditorView(mini: true)
+        @div class: 'description', "Assign this document's title if you wants"
+        @div class: 'btn-group btn-group-options pull-right', =>
+          @button class: 'btn submit', outlet: 'submitForm', 'Submit'
+          @button class: 'btn', outlet: 'closePanel', 'Close'
 
-    @header = document.createElement('div')
-    @header.classList.add('header', 'list-item')
 
-    @directoryName = document.createElement('span')
-    @directoryName.classList.add('name', 'icon')
+    initialize: ->
+      @panel = atom.workspace.addModalPanel(item: this, visible: false)
 
-    @entries = document.createElement('ol')
-    @entries.classList.add('entries', 'list-tree')
+      # @miniEditor.on 'blur', =>
+      #   console.log "lose focus in editor"
+      #   console.log @useMarkdown.hasFocus()
+      #   @close()
 
-    @directoryName.classList.add('icon-database')
-    @directoryName.dataset.id = @file.id
-    @directoryName.title = @file.id
-    @directoryName.dataset.token = @file.token
+    toggle: ->
+      if @panel.isVisible()
+        @close()
+      else
+        @open()
 
-    directoryNameTextNode = document.createTextNode(@file.id)
+    close: ->
+      return unless @panel.isVisible()
 
-    @appendChild(@header)
-    @directoryName.appendChild(directoryNameTextNode)
-    @header.appendChild(@directoryName)
+      miniEditorFocused = @miniEditor.hasFocus()
+      @miniEditor.setText('')
+      @panel.hide()
+      @restoreFocus() if miniEditorFocused
 
-module.exports = document.registerElement('harookit-atom-account', prototype: AccountView.prototype, extends: 'li')
+    confirm: ->
+      harookitDocumentTitle = @miniEditor.getText()
+      harookitDocumentOptions = {
+        useMarkdown: @useMarkdown.hasClass 'selected'
+      }
+      editor = atom.workspace.getActiveTextEditor()
+      # console.log("submit", editor? and harookitDocumentTitle)
+      @close()
+
+      return editor? and [harookitDocumentTitle, harookitDocumentOptions]
+
+    storeFocusElement: ->
+      @previouslyFocusedElement = $(':focus')
+
+    restoreFocus: ->
+      if @previouslyFocusedElement?.isOnDom()
+        @previouslyFocusedElement.focus()
+      else
+        atom.views.getView(atom.workspace).focus()
+
+    setOptionButtonState: (optionButton, selected) ->
+      if selected
+        optionButton.addClass 'selected'
+      else
+        optionButton.removeClass 'selected'
+
+    open: ->
+      return if @panel.isVisible()
+
+      if editor = atom.workspace.getActiveTextEditor()
+        @storeFocusElement()
+        @panel.show()
+        @miniEditor.focus()

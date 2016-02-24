@@ -9,5 +9,3 @@
 # https://atom.io/docs/latest/behind-atom-keymaps-in-depth
 '.platform-darwin':
   'cmd-ctrl-\\': 'harookit:list-toggle'
-  'cmd-ctrl-|': 'harookit:reveal-active-file'
-  'cmd-ctrl-0': 'harookit:list-focus'

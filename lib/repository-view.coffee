@@ -1,21 +1,17 @@
 path = require 'path'
 shell = require 'shell'
 
-_ = require 'underscore-plus'
 {CompositeDisposable} = require 'atom'
 {$, View} = require 'atom-space-pen-views'
-fs = require 'fs-plus'
 
-LocalStorage = window.localStorage
-
-AccountView = require './account-view'
+HeaderView = require './header-view'
 ItemView = require './item-view'
 
 toggleConfig = (keyPath) ->
   atom.config.set(keyPath, not atom.config.get(keyPath))
 
 module.exports =
-class HarookitAtomView extends View
+class RepositoryView extends View
   panel: null
 
   @content: ->
@@ -38,16 +34,16 @@ class HarookitAtomView extends View
 
     @handleEvents()
 
-    @updateAccount(state.harooCloudConfig)
+    @updateRepository(state.harooCloudConfig)
     @updateItems(state.accessToken)
 
     @width(state.width) if state.width > 0
 
-  updateAccount: (config={}) ->
-    account = new AccountView()
-    account.initialize({id: 'soomtong1', token: 'token id'})
-    @list[0].appendChild(account)
-    account
+  updateRepository: (config={}) ->
+    repository = new HeaderView()
+    repository.initialize({id: 'soomtong1', token: 'token id'})
+    @list[0].appendChild(repository)
+    repository
 
   updateItems: (accessToken={}) ->
 #    retrieve by access token

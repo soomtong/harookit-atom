@@ -23,8 +23,16 @@
           ]
         },
         {
+          'label': 'Show List Panel'
+          'command': 'harookit:list-show'
+        },
+        {
           'label': 'Toggle List Panel'
           'command': 'harookit:list-toggle'
+        },
+        {
+          'label': 'Toggle Panel Side'
+          'command': 'harookit:toggle-side'
         }
       ]
     ]
