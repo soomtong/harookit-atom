@@ -1,25 +1,41 @@
-RepositoryView = require './repository-view'
-AccountView = require './account-view'
+RepositoryView = require './repository-view'  # can swap repository or account view
+AccountView = require './account-view'  # can swap sign-in or sign-up view
 
 {CompositeDisposable} = require 'atom'
 
 module.exports = 
   subscriptions: null
-  harookitView: null
+  harookitView:
+    account: null
+    repository: null
   harookitToken: null
 
-  activate: (@state) ->
-    console.info "activate()"
+  ### methods ###
+  activate: (state) ->
+    # each called in activated
+    console.info "activate()", state
 
     @subscriptions = new CompositeDisposable
 
-#    @state.attached ?= true if @shouldAttach()
-    @state.accessToken = @getAccessToken()
+    # check up access token, is this async?
+    @harookitToken = state.accessToken = @getAccessToken()
 
-#    console.log  @state.attached
-#    @createView() if @state.attached
-
-    @createView()
+    if @harookitToken
+      @harookitView = new RepositoryView(state)
+      @subscriptions.add atom.commands.add 'atom-workspace',
+        'harookit:list-show': => @createView().show()
+        'harookit:list-toggle': => @createView().toggle()
+        'harookit:toggle-side': => @createView().toggleSide()
+        'harookit:sign-out': => @signOut()
+      @harookitView
+    else
+      @harookitView.account = new AccountView(state)
+      @subscriptions.add atom.commands.add 'atom-workspace',
+        'harookit:list-toggle': => @signIn()
+        'harookit:sign-in': => @signIn()
+        'harookit:sign-up': => @signUp()
+        'core:cancel': => @harookitView.account.close()
+      @harookitView
 
   deactivate: ->
     console.info "deactivate()"
@@ -27,6 +43,8 @@ module.exports =
     @subscriptions.dispose()
     @harookitView?.deactivate()
     @harookitView = null
+    @harookitToken?.deactivate()
+    @harookitToken = null
 
   serialize: ->
     console.log "serialize()"
@@ -35,40 +53,29 @@ module.exports =
     else
       @state
 
+  ### methods ###
   getAccessToken: ->
     @harookitToken = atom.config.get('harookit-account-token')
 
-  createView: ->
-    console.info "createView()"
-    if @harookitToken
-      @subscriptions.add atom.commands.add('atom-workspace', {
-        'harookit:list-show': => @createView().show()
-        'harookit:list-toggle': => @createView().toggle()
-        'harookit:toggle-side': => @createView().toggleSide()
-        'harookit:sign-out': => @signOut()
-      })
-      @harookitView = new RepositoryView(@state)
-      @harookitView
-    else
-      @subscriptions.add atom.commands.add('atom-workspace', {
-        'harookit:list-toggle': => @signIn()
-        'harookit:sign-in': => @signIn()
-        'harookit:sign-up': => @signUp()
-      })
-
-  shouldAttach: ->
-    console.log "shouldAttach()", atom.workspace.getActivePaneItem()
-    if atom.workspace.getActivePaneItem()
-      false
-    else
-      true
+  deleteAccountToken: ->
+    atom.config.set('harookit-account-token', null)
 
   signIn: ->
     console.log "account sign in", @harookitView
-    @harookitView = AccountView.activate()
-    @harookitView.toggle()
-    console.log 'go sign in'
+    @harookitView.account.showSignIn()
 
   signUp: ->
+    console.log "account sign up", @harookitView
+    @harookitView.account.showSignUp()
 
   signOut: ->
+    console.log "account sign out", @harookitView
+    @harookitToken = null
+
+
+  toggleRepository: ->
+
+  togglePanelSide: ->
+
+  showRepository: ->
+

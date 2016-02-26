@@ -1,72 +1,74 @@
 {$, TextEditorView, View}  = require 'atom-space-pen-views'
 
-module.exports =
-  class AccountPanel extends View
-    @activate: ->
-      new AccountPanel
+module.exports = class AccountPanel extends View
+  panel: null
 
-    @content: ->
-      @div class: 'harookit-atom', =>
-        @h4 class: 'title', outlet: 'status'
-        @subview 'miniEditor', new TextEditorView(mini: true)
-        @div class: 'description', "Assign this document's title if you wants"
-        @div class: 'btn-group btn-group-options pull-right', =>
-          @button class: 'btn submit', outlet: 'submitForm', 'Submit'
-          @button class: 'btn', outlet: 'closePanel', 'Close'
+  @content: ->
+    @div class: 'harookit-atom-account', =>
+      @h4 class: 'title', outlet: 'panelTitle'
+      @h5 class: 'sub-title', "Haroo Cloud ID"
+      @subview 'miniEditorID', new TextEditorView(mini: true)
+      @h5 class: 'sub-title', "Password"
+      @subview 'miniEditorPassword', new TextEditorView(mini: true)
+      @div class: 'description', "Assign this document's title if you wants"
+      @div class: 'btn-group btn-group-options pull-right', =>
+        @button class: 'btn submit', outlet: 'submitForm', 'Submit'
+        @button class: 'btn', outlet: 'closePanel', 'Close'
 
+  initialize: (state) ->
+    console.log state
+    @panel = atom.workspace.addModalPanel(item: this, visible: false)
 
-    initialize: ->
-      @panel = atom.workspace.addModalPanel(item: this, visible: false)
-
-      # @miniEditor.on 'blur', =>
-      #   console.log "lose focus in editor"
-      #   console.log @useMarkdown.hasFocus()
-      #   @close()
-
-    toggle: ->
-      if @panel.isVisible()
-        @close()
-      else
-        @open()
-
-    close: ->
-      return unless @panel.isVisible()
-
-      miniEditorFocused = @miniEditor.hasFocus()
-      @miniEditor.setText('')
-      @panel.hide()
-      @restoreFocus() if miniEditorFocused
-
-    confirm: ->
-      harookitDocumentTitle = @miniEditor.getText()
-      harookitDocumentOptions = {
-        useMarkdown: @useMarkdown.hasClass 'selected'
-      }
-      editor = atom.workspace.getActiveTextEditor()
-      # console.log("submit", editor? and harookitDocumentTitle)
+  toggle: ->
+    if @panel.isVisible()
       @close()
+    else
+      @open()
 
-      return editor? and [harookitDocumentTitle, harookitDocumentOptions]
+  open: (msg) ->
+    return if @panel.isVisible()
 
-    storeFocusElement: ->
-      @previouslyFocusedElement = $(':focus')
+    console.info @panelTitle
+    @panelTitle.text(msg)
+    @storeFocusElement()
+    @panel.show()
+    @miniEditorID.focus()
 
-    restoreFocus: ->
-      if @previouslyFocusedElement?.isOnDom()
-        @previouslyFocusedElement.focus()
-      else
-        atom.views.getView(atom.workspace).focus()
+  close: ->
+    return unless @panel.isVisible()
 
-    setOptionButtonState: (optionButton, selected) ->
-      if selected
-        optionButton.addClass 'selected'
-      else
-        optionButton.removeClass 'selected'
+    #miniEditorFocused = @miniEditor.hasFocus()
+    #@miniEditor.setText('')
+    @panel.hide()
+    #@restoreFocus() if miniEditorFocused
 
-    open: ->
-      return if @panel.isVisible()
+  confirm: ->
+    harookitDocumentTitle = @miniEditorID.getText()
+    harookitDocumentOptions = {
+      useMarkdown: @useMarkdown.hasClass 'selected'
+    }
+    editor = atom.workspace.getActiveTextEditor()
+    # console.log("submit", editor? and harookitDocumentTitle)
+    @close()
 
-      if editor = atom.workspace.getActiveTextEditor()
-        @storeFocusElement()
-        @panel.show()
-        @miniEditor.focus()
+    return editor? and [harookitDocumentTitle, harookitDocumentOptions]
+
+  showSignIn: ->
+    @open('Sign In')
+
+  showSignUp: ->
+
+  storeFocusElement: ->
+    @previouslyFocusedElement = $(':focus')
+
+  restoreFocus: ->
+    if @previouslyFocusedElement?.isOnDom()
+      @previouslyFocusedElement.focus()
+    else
+      atom.views.getView(atom.workspace).focus()
+
+  setOptionButtonState: (optionButton, selected) ->
+    if selected
+      optionButton.addClass 'selected'
+    else
+      optionButton.removeClass 'selected'
