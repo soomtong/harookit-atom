@@ -9,3 +9,6 @@
 # https://atom.io/docs/latest/behind-atom-keymaps-in-depth
 '.platform-darwin':
   'cmd-ctrl-\\': 'harookit:list-toggle'
+'.harookit-atom-account':
+  'tab': 'harookit-atom:focus-next'
+  'shift-tab': 'harookit-atom:focus-previous'

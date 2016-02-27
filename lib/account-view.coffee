@@ -1,15 +1,18 @@
 {$, TextEditorView, View}  = require 'atom-space-pen-views'
 
+{CompositeDisposable} = require 'atom'
+
 module.exports = class AccountPanel extends View
   panel: null
+  subscriptions: null
 
   @content: ->
-    @div class: 'harookit-atom-account', =>
+    @div tabIndex: -1, class: 'harookit-atom-account', =>
       @h4 class: 'title', outlet: 'panelTitle'
       @h5 class: 'sub-title', "Haroo Cloud ID"
-      @subview 'miniEditorID', new TextEditorView(mini: true)
+      @subview 'miniEditorID', new TextEditorView(mini: true, placeholderText: 'HarooCloud ID')
       @h5 class: 'sub-title', "Password"
-      @subview 'miniEditorPassword', new TextEditorView(mini: true)
+      @subview 'miniEditorPassword', new TextEditorView(mini: true, placeholderText: 'Password')
       @div class: 'description', "Assign this document's title if you wants"
       @div class: 'btn-group btn-group-options pull-right', =>
         @button class: 'btn submit', outlet: 'submitForm', 'Submit'
@@ -17,7 +20,20 @@ module.exports = class AccountPanel extends View
 
   initialize: (state) ->
     console.log state
+    @subscriptions = new CompositeDisposable
+
     @panel = atom.workspace.addModalPanel(item: this, visible: false)
+
+    @subscriptions.add atom.commands.add @element,  # wtf. what is this.element!
+      'harookit-atom:focus-next': => @toggleFocus()
+      'harookit-atom:focus-previous': => @toggleFocus()
+
+  toggleFocus: =>
+    console.log 'toggleFocus()'
+    if @miniEditorID.hasClass('is-focused')
+      @miniEditorPassword.focus()
+    else
+      @miniEditorID.focus()
 
   toggle: ->
     if @panel.isVisible()
@@ -28,7 +44,6 @@ module.exports = class AccountPanel extends View
   open: (msg) ->
     return if @panel.isVisible()
 
-    console.info @panelTitle
     @panelTitle.text(msg)
     @storeFocusElement()
     @panel.show()
@@ -37,10 +52,12 @@ module.exports = class AccountPanel extends View
   close: ->
     return unless @panel.isVisible()
 
-    #miniEditorFocused = @miniEditor.hasFocus()
-    #@miniEditor.setText('')
+    miniEditorIDFocused = @miniEditorID.hasFocus()
+    miniEditorPasswordFocused = @miniEditorPassword.hasFocus()
+    @miniEditorID.setText('')
+    @miniEditorPassword.setText('')
     @panel.hide()
-    #@restoreFocus() if miniEditorFocused
+    @restoreFocus() if miniEditorIDFocused or miniEditorPasswordFocused
 
   confirm: ->
     harookitDocumentTitle = @miniEditorID.getText()
