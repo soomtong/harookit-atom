@@ -1,10 +1,12 @@
-{$, TextEditorView, View}  = require 'atom-space-pen-views'
-
 {CompositeDisposable} = require 'atom'
+{$, TextEditorView, View}  = require 'atom-space-pen-views'
 
 module.exports = class AccountPanel extends View
   panel: null
   subscriptions: null
+  linkMessage =
+    in: 'Sign In'
+    up: 'Sign Up'
 
   @content: ->
     @div tabIndex: -1, class: 'harookit-atom-account', =>
@@ -15,7 +17,8 @@ module.exports = class AccountPanel extends View
       @subview 'miniEditorPassword', new TextEditorView(mini: true, placeholderText: 'Password')
       @div class: 'description', =>
         @a href: 'https://haroocloud.com', target: '_blank', 'haroocloud.com'
-        @span class: 'more-info', 'for more information'
+        @span class: 'more-info', 'for more information or'
+        @a href: '#', outlet: 'swapLink', linkMessage.up
       @div class: 'btn-group btn-group-options pull-right', =>
         @button class: 'btn submit', outlet: 'submitForm', 'Submit'
         @button class: 'btn', outlet: 'closePanel', 'Close'
@@ -30,6 +33,15 @@ module.exports = class AccountPanel extends View
       'harookit-atom:focus-next': => @toggleFocus()
       'harookit-atom:focus-previous': => @toggleFocus()
     @subscriptions.add @closePanel.on 'click', => @close()
+    @subscriptions.add @swapLink.on 'click', => @toggleLink()
+
+  toggleLink: ->
+    if @swapLink.text() == linkMessage.in
+      @swapLink.text(linkMessage.up)
+      @showSignIn()
+    else
+      @swapLink.text(linkMessage.in)
+      @showSignUp()
 
   toggleFocus: =>
     console.log 'toggleFocus()'
@@ -52,16 +64,19 @@ module.exports = class AccountPanel extends View
     @panel.show()
     @miniEditorID.focus()
 
-  close: ->
+  close: (swap = false) ->
     return unless @panel.isVisible()
 
     console.log 'close()'
-    miniEditorIDFocused = @miniEditorID.hasFocus()
-    miniEditorPasswordFocused = @miniEditorPassword.hasFocus()
-    @miniEditorID.setText('')
-    @miniEditorPassword.setText('')
+    unless swap
+      miniEditorIDFocused = @miniEditorID.hasFocus()
+      miniEditorPasswordFocused = @miniEditorPassword.hasFocus()
+      @miniEditorID.setText('')
+      @miniEditorPassword.setText('')
+      @restoreFocus() if miniEditorIDFocused or miniEditorPasswordFocused
     @panel.hide()
-    @restoreFocus() if miniEditorIDFocused or miniEditorPasswordFocused
+
+    #@subscriptions.remove
 
   confirm: ->
     harookitDocumentTitle = @miniEditorID.getText()
@@ -75,10 +90,12 @@ module.exports = class AccountPanel extends View
     return editor? and [harookitDocumentTitle, harookitDocumentOptions]
 
   showSignIn: ->
-    @open('Sign In')
+    @close(true)
+    @open(linkMessage.in)
 
   showSignUp: ->
-    @open('Sign Up')
+    @close(true)
+    @open(linkMessage.up)
 
   storeFocusElement: ->
     @previouslyFocusedElement = $(':focus')
@@ -88,9 +105,3 @@ module.exports = class AccountPanel extends View
       @previouslyFocusedElement.focus()
     else
       atom.views.getView(atom.workspace).focus()
-
-  setOptionButtonState: (optionButton, selected) ->
-    if selected
-      optionButton.addClass 'selected'
-    else
-      optionButton.removeClass 'selected'

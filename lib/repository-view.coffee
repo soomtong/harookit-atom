@@ -1,17 +1,10 @@
-path = require 'path'
-shell = require 'shell'
-
 {CompositeDisposable} = require 'atom'
 {$, View} = require 'atom-space-pen-views'
 
 HeaderView = require './header-view'
 ItemView = require './item-view'
 
-toggleConfig = (keyPath) ->
-  atom.config.set(keyPath, not atom.config.get(keyPath))
-
-module.exports =
-class RepositoryView extends View
+module.exports = class RepositoryView extends View
   panel: null
 
   @content: ->
@@ -204,7 +197,7 @@ class RepositoryView extends View
     undefined
 
   toggleSide: ->
-    toggleConfig('harookit-atom.showOnLeftSide')
+    atom.config.set('harookit-atom.showOnLeftSide', not atom.config.get('harookit-atom.showOnLeftSide'))
 
   onMouseDown: (e) ->
     e.stopPropagation()

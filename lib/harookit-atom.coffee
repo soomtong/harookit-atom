@@ -21,11 +21,11 @@ module.exports =
     @harookitToken = state.accessToken = @getAccessToken()
 
     if @harookitToken
-      @harookitView = new RepositoryView(state)
+      @harookitView.repository = new RepositoryView(state)
       @subscriptions.add atom.commands.add 'atom-workspace',
-        'harookit:list-show': => @createView().show()
-        'harookit:list-toggle': => @createView().toggle()
-        'harookit:toggle-side': => @createView().toggleSide()
+        'harookit:list-show': => @showRepository()
+        'harookit:list-toggle': => @toggleRepository()
+        'harookit:toggle-side': => @togglePanelSide()
         'harookit:sign-out': => @signOut()
       @harookitView
     else
@@ -55,7 +55,7 @@ module.exports =
 
   ### methods ###
   getAccessToken: ->
-    @harookitToken = atom.config.get('harookit-account-token')
+    @harookitToken = '88104f65-719e-4b8d-af43-f70be46dae8e' #atom.config.get('harookit-account-token')
 
   deleteAccountToken: ->
     atom.config.set('harookit-account-token', null)
@@ -70,12 +70,15 @@ module.exports =
 
   signOut: ->
     console.log "account sign out", @harookitView
+    @deleteAccountToken()
     @harookitToken = null
 
-
   toggleRepository: ->
+    @harookitView.repository.toggle()
 
   togglePanelSide: ->
+    @harookitView.repository.toggleSide()
 
   showRepository: ->
+    @harookitView.repository.show()
 
