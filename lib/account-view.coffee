@@ -13,13 +13,15 @@ module.exports = class AccountPanel extends View
       @subview 'miniEditorID', new TextEditorView(mini: true, placeholderText: 'HarooCloud ID')
       @h5 class: 'sub-title', "Password"
       @subview 'miniEditorPassword', new TextEditorView(mini: true, placeholderText: 'Password')
-      @div class: 'description', "Assign this document's title if you wants"
+      @div class: 'description', =>
+        @a href: 'https://haroocloud.com', target: '_blank', 'haroocloud.com'
+        @span class: 'more-info', 'for more information'
       @div class: 'btn-group btn-group-options pull-right', =>
         @button class: 'btn submit', outlet: 'submitForm', 'Submit'
         @button class: 'btn', outlet: 'closePanel', 'Close'
 
   initialize: (state) ->
-    console.log state
+    console.log 'initialize()', state
     @subscriptions = new CompositeDisposable
 
     @panel = atom.workspace.addModalPanel(item: this, visible: false)
@@ -27,6 +29,7 @@ module.exports = class AccountPanel extends View
     @subscriptions.add atom.commands.add @element,  # wtf. what is this.element!
       'harookit-atom:focus-next': => @toggleFocus()
       'harookit-atom:focus-previous': => @toggleFocus()
+    @subscriptions.add @closePanel.on 'click', => @close()
 
   toggleFocus: =>
     console.log 'toggleFocus()'
@@ -52,6 +55,7 @@ module.exports = class AccountPanel extends View
   close: ->
     return unless @panel.isVisible()
 
+    console.log 'close()'
     miniEditorIDFocused = @miniEditorID.hasFocus()
     miniEditorPasswordFocused = @miniEditorPassword.hasFocus()
     @miniEditorID.setText('')
@@ -74,6 +78,7 @@ module.exports = class AccountPanel extends View
     @open('Sign In')
 
   showSignUp: ->
+    @open('Sign Up')
 
   storeFocusElement: ->
     @previouslyFocusedElement = $(':focus')
