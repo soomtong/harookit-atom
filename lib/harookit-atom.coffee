@@ -1,12 +1,12 @@
-RepositoryView = require './repository-view'  # can swap repository or account view
-AccountView = require './account-view'  # can swap sign-in or sign-up view
+RepositoryView = require './repository-view' # can swap repository or account view
+AccountView = require './account-view' # can swap sign-in or sign-up view
 {linkMessage} = require './common'
 {CompositeDisposable} = require 'atom'
 
 Request = require 'superagent'
 Notify = require 'atom-notify'
 
-module.exports = 
+module.exports =
   subscriptions: null
   harookitView:
     account: null
@@ -14,37 +14,11 @@ module.exports =
   harookitToken: null
   harookitConfig: null
 
-  ### methods ###
+# methods ###
   activate: (state) ->
     # each called in activated
     console.info "activate()", state
-
-    @subscriptions = new CompositeDisposable
-
-    # check up access token, is this async?
-    @harookitToken = state.accessToken = @getAccessToken()
-    @harookitConfig = state.harookitConfig = @refreshConfig()
-
-    if @harookitToken
-      @harookitView.repository = new RepositoryView(state)
-      @subscriptions.add atom.commands.add 'atom-workspace',
-        'harookit:list-show': => @showRepository()
-        'harookit:list-toggle': => @toggleRepository()
-        'harookit:toggle-side': => @togglePanelSide()
-        'harookit:sign-out': => @signOut()
-      @harookitView
-    else
-      @harookitView.account = new AccountView(state)
-      @subscriptions.add atom.commands.add 'atom-workspace',
-        'harookit:list-toggle': => @signIn()
-        'harookit:sign-in': => @signIn()
-        'harookit:sign-up': => @signUp()
-        'core:cancel': => @harookitView.account.close()
-        @subscriptions.add @harookitView.account.submitForm.on 'click', => @submitLink()
-        @subscriptions.add atom.commands.add @harookitView.account.miniEditorID.element, 'core:confirm', => @submitLink()
-        @subscriptions.add atom.commands.add @harookitView.account.miniEditorPassword.element, 'core:confirm', => @submitLink()
-
-      @harookitView
+    @updateState(state)
 
   deactivate: ->
     console.info "deactivate()"
@@ -69,7 +43,40 @@ module.exports =
       userID: atom.config.get('harooCloudUserId')
       userPassword: atom.config.get('harooCloudUserPassword')
 
-  ### methods ###
+  updateState: (state) ->
+    @subscriptions = new CompositeDisposable
+
+    # check up access token, is this async?
+    @harookitToken = state.accessToken = @getAccessToken()
+    @harookitConfig = state.harookitConfig = @refreshConfig()
+
+    if @harookitToken
+      @harookitView.repository = new RepositoryView(state)
+
+      @subscriptions.add atom.commands.add 'atom-workspace',
+        'harookit:list-show': => @showRepository()
+        'harookit:list-toggle': => @toggleRepository()
+        'harookit:toggle-side': => @togglePanelSide()
+        'harookit:sign-out': => @signOut()
+    else
+      @harookitView.account = new AccountView(state)
+
+      @subscriptions.add atom.commands.add 'atom-workspace',
+        'harookit:list-toggle': =>
+          notifier = Notify "Harookit"
+          notifier.addError "Need an access token. Go Sign in or Sign up"
+        'harookit:sign-in': => @signIn()
+        'harookit:sign-up': => @signUp()
+        'core:cancel': => @harookitView.account.close()
+
+      @subscriptions.add @harookitView.account.submitForm.on 'click', =>
+        @submitLink()
+      @subscriptions.add atom.commands.add @harookitView.account.miniEditorID.element, 'core:confirm', =>
+        @submitLink()
+      @subscriptions.add atom.commands.add @harookitView.account.miniEditorPassword.element, 'core:confirm', =>
+        @submitLink()
+
+# methods ###
   submitLink: ->
     userID = @harookitView.account.miniEditorID.getText()
     userPassword = @harookitView.account.miniEditorPassword.getText()
@@ -95,9 +102,10 @@ module.exports =
     .end (err, result) =>
       console.info err, result
       if !err and result.statusCode == 200
-        @harookitToken = result.body.data.access_token
         notifier.addSuccess "Sign in operation Succeed", timeOut: 2000
+        @harookitToken = result.body.data.access_token
         @saveAccessToken(@harookitToken)
+        @updateState()
       else
         notifier.addError "Sign in operation Failed", dismissable: false
 
@@ -132,4 +140,3 @@ module.exports =
 
   showRepository: ->
     @harookitView.repository.show()
-
