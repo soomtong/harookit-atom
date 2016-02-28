@@ -1,12 +1,13 @@
 {CompositeDisposable} = require 'atom'
 {$, TextEditorView, View}  = require 'atom-space-pen-views'
 
+{linkMessage} = require './common'
+
 module.exports = class AccountPanel extends View
   panel: null
   subscriptions: null
-  linkMessage =
-    in: 'Sign In'
-    up: 'Sign Up'
+  harookitConfig: null
+  accessToken: null
 
   @content: ->
     @div tabIndex: -1, class: 'harookit-atom-account', =>
@@ -34,6 +35,9 @@ module.exports = class AccountPanel extends View
       'harookit-atom:focus-previous': => @toggleFocus()
     @subscriptions.add @closePanel.on 'click', => @close()
     @subscriptions.add @swapLink.on 'click', => @toggleLink()
+
+    # bind config and token
+    @harookitConfig = state.harooCloudConfig
 
   toggleLink: ->
     if @swapLink.text() == linkMessage.in
@@ -77,17 +81,6 @@ module.exports = class AccountPanel extends View
     @panel.hide()
 
     #@subscriptions.remove
-
-  confirm: ->
-    harookitDocumentTitle = @miniEditorID.getText()
-    harookitDocumentOptions = {
-      useMarkdown: @useMarkdown.hasClass 'selected'
-    }
-    editor = atom.workspace.getActiveTextEditor()
-    # console.log("submit", editor? and harookitDocumentTitle)
-    @close()
-
-    return editor? and [harookitDocumentTitle, harookitDocumentOptions]
 
   showSignIn: ->
     @close(true)

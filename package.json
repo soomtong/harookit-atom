@@ -21,7 +21,9 @@
     "fs-plus": "*",
     "pathwatcher": "*",
     "underscore-plus": "*",
-    "event-kit": "*"
+    "event-kit": "*",
+    "superagent": "*",
+    "atom-notify": "*"
   },
   "configSchema": {
     "showOnLeftSide": {
