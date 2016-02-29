@@ -1,11 +1,15 @@
 {CompositeDisposable} = require 'atom'
 {$, View} = require 'atom-space-pen-views'
 
+Request = require 'superagent'
+Notify = require 'atom-notify'
+
 HeaderView = require './header-view'
 ItemView = require './item-view'
 
 module.exports = class RepositoryView extends View
   panel: null
+  config: null
 
   @content: ->
     @div class: 'harookit-atom-resizer tree-view-resizer tool-panel', 'data-show-on-right-side': !atom.config.get('harookit-atom.showOnLeftSide'), =>
@@ -14,7 +18,6 @@ module.exports = class RepositoryView extends View
       @div class: 'harookit-atom-resize-handle tree-view-resize-handle', outlet: 'resizeHandle'
 
   initialize: (state) ->
-    console.log "initialized()", state
     @disposables = new CompositeDisposable
     @focusAfterAttach = false
     @scrollLeftAfterAttach = -1
@@ -27,6 +30,10 @@ module.exports = class RepositoryView extends View
 
     @handleEvents()
 
+    @config = {
+      id: atom.config.get('harookit-atom.harooCloudUserId')
+      token: atom.config.get('harookit-atom.harooCloudAccessToken')
+    }
     @updateRepository()
     @updateItems()
 
@@ -34,12 +41,22 @@ module.exports = class RepositoryView extends View
 
   updateRepository: (config={}) ->
     repository = new HeaderView()
-    repository.initialize({id: 'soomtong1', token: 'token id'})
+    repository.initialize({id: @config.id, token: @config.token})
     @list[0].appendChild(repository)
     repository
 
   updateItems: (accessToken={}) ->
-#    retrieve by access token
+    notifier = Notify "Harookit"
+
+    url = 'http://localhost:3030/api/documents/'
+    Request.get url + @config.token
+    .set 'x-access-host', 'harookit-atom'
+    .end (err, result) =>
+      console.info err, result
+      if !err and result.statusCode == 200
+        console.log result.body.data
+      else
+        #notifier.addError "Operation Failed", dismissable: false
 
     results = [
       {

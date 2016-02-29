@@ -15,9 +15,6 @@ module.exports =
 
 # tier 1 #
   activate: (state) ->
-    # each called in activated
-    console.info "activate()", state
-
     @subscriptions = new CompositeDisposable
 
     @harookitView.repository = new RepositoryView(state)
