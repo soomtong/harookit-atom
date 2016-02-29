@@ -6,7 +6,6 @@
 module.exports = class AccountPanel extends View
   panel: null
   subscriptions: null
-  harookitConfig: null
   accessToken: null
 
   @content: ->
@@ -24,8 +23,7 @@ module.exports = class AccountPanel extends View
         @button class: 'btn submit', outlet: 'submitForm', 'Submit'
         @button class: 'btn', outlet: 'closePanel', 'Close'
 
-  initialize: (state) ->
-    console.log 'initialize()', state
+  initialize: () ->
     @subscriptions = new CompositeDisposable
 
     @panel = atom.workspace.addModalPanel(item: this, visible: false)
@@ -35,9 +33,6 @@ module.exports = class AccountPanel extends View
       'harookit-atom:focus-previous': => @toggleFocus()
     @subscriptions.add @closePanel.on 'click', => @close()
     @subscriptions.add @swapLink.on 'click', => @toggleLink()
-
-    # bind config and token
-    @harookitConfig = state.harooCloudConfig
 
   toggleLink: ->
     if @swapLink.text() == linkMessage.in
@@ -71,7 +66,6 @@ module.exports = class AccountPanel extends View
   close: (swap = false) ->
     return unless @panel.isVisible()
 
-    console.log 'close()'
     unless swap
       miniEditorIDFocused = @miniEditorID.hasFocus()
       miniEditorPasswordFocused = @miniEditorPassword.hasFocus()
@@ -79,8 +73,6 @@ module.exports = class AccountPanel extends View
       @miniEditorPassword.setText('')
       @restoreFocus() if miniEditorIDFocused or miniEditorPasswordFocused
     @panel.hide()
-
-    #@subscriptions.remove
 
   showSignIn: ->
     @close(true)

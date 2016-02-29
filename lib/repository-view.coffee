@@ -27,8 +27,8 @@ module.exports = class RepositoryView extends View
 
     @handleEvents()
 
-    @updateRepository(state.harooCloudConfig)
-    @updateItems(state.accessToken)
+    @updateRepository()
+    @updateItems()
 
     @width(state.width) if state.width > 0
 
@@ -123,6 +123,10 @@ module.exports = class RepositoryView extends View
   show: ->
     @attach()
     @focus()
+
+  hide: ->
+    if @isVisible()
+      @detach()
 
   attach: ->
     @panel ?=

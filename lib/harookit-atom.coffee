@@ -12,87 +12,63 @@ module.exports =
     account: null
     repository: null
   harookitToken: null
-  harookitConfig: null
 
-# methods ###
+# tier 1 #
   activate: (state) ->
     # each called in activated
     console.info "activate()", state
-    @updateState(state)
+
+    @subscriptions = new CompositeDisposable
+
+    @harookitView.repository = new RepositoryView(state)
+
+    @subscriptions.add atom.commands.add 'atom-workspace',
+      'harookit:list-show': => @showRepository()
+      'harookit:list-toggle': => @toggleRepository()
+      'harookit:toggle-side': => @togglePanelSide()
+
+    @harookitView.account = new AccountView()
+
+    @subscriptions.add atom.commands.add 'atom-workspace',
+      'harookit:sign-out': => @signOut()
+      'harookit:sign-in': => @signIn()
+      'harookit:sign-up': => @signUp()
+      'core:cancel': => @harookitView.account.close()
+
+    @subscriptions.add @harookitView.account.submitForm.on 'click', =>
+      @submitLink()
+    @subscriptions.add atom.commands.add @harookitView.account.miniEditorID.element, 'core:confirm', =>
+      @submitLink()
+    @subscriptions.add atom.commands.add @harookitView.account.miniEditorPassword.element, 'core:confirm', =>
+      @submitLink()
 
   deactivate: ->
     console.info "deactivate()"
 
     @subscriptions.dispose()
-    @harookitView?.deactivate()
-    @harookitView = null
-    @harookitToken?.deactivate()
-    @harookitToken = null
 
   serialize: ->
     console.log "serialize()"
-    if @harookitView?
-      @harookitView.serialize()
-    else
-      @state
 
-  refreshConfig: ->
-    console.log 'get config data'
-    @harookitConfig =
-      apiHost: atom.config.get('harooCloudHost')
-      userID: atom.config.get('harooCloudUserId')
-      userPassword: atom.config.get('harooCloudUserPassword')
-
-  updateState: (state) ->
-    @subscriptions = new CompositeDisposable
-
-    # check up access token, is this async?
-    @harookitToken = state.accessToken = @getAccessToken()
-    @harookitConfig = state.harookitConfig = @refreshConfig()
-
-    if @harookitToken
-      @harookitView.repository = new RepositoryView(state)
-
-      @subscriptions.add atom.commands.add 'atom-workspace',
-        'harookit:list-show': => @showRepository()
-        'harookit:list-toggle': => @toggleRepository()
-        'harookit:toggle-side': => @togglePanelSide()
-        'harookit:sign-out': => @signOut()
-    else
-      @harookitView.account = new AccountView(state)
-
-      @subscriptions.add atom.commands.add 'atom-workspace',
-        'harookit:list-toggle': =>
-          notifier = Notify "Harookit"
-          notifier.addError "Need an access token. Go Sign in or Sign up"
-        'harookit:sign-in': => @signIn()
-        'harookit:sign-up': => @signUp()
-        'core:cancel': => @harookitView.account.close()
-
-      @subscriptions.add @harookitView.account.submitForm.on 'click', =>
-        @submitLink()
-      @subscriptions.add atom.commands.add @harookitView.account.miniEditorID.element, 'core:confirm', =>
-        @submitLink()
-      @subscriptions.add atom.commands.add @harookitView.account.miniEditorPassword.element, 'core:confirm', =>
-        @submitLink()
-
-# methods ###
+# tier 2 #
   submitLink: ->
-    userID = @harookitView.account.miniEditorID.getText()
-    userPassword = @harookitView.account.miniEditorPassword.getText()
+    userID = @harookitView.account.miniEditorID.getText().trim()
+    userPassword = @harookitView.account.miniEditorPassword.getText().trim()
 
     @harookitView.account.close()
 
     notifier = Notify "Harookit"
 
-    console.info @harookitView.account.harookitConfig.host, userID, userPassword
+    console.info @harookitView.account.harookitConfig, userID, userPassword
 
     if @harookitView.account.panelTitle.text() == linkMessage.in
       #url = @harookitConfig.host + '/api/account/login'
       url = 'http://localhost:3030/api/account/login'
+      op = linkMessage.in
     else
       #url = @harookitConfig.host + '/api/account/create'
       url = 'http://localhost:3030/api/account/create'
+      op = linkMessage.up
 
     Request.post url
     .set 'x-access-host', 'harookit-atom'
@@ -102,22 +78,23 @@ module.exports =
     .end (err, result) =>
       console.info err, result
       if !err and result.statusCode == 200
-        notifier.addSuccess "Sign in operation Succeed", timeOut: 2000
+        notifier.addSuccess op + "operation Succeed", timeOut: 2000
+        atom.config.set('harookit-atom.harooCloudUserId', userID)
+        atom.config.set('harookit-atom.harooCloudUserPassword', userPassword)
         @harookitToken = result.body.data.access_token
         @saveAccessToken(@harookitToken)
-        @updateState()
       else
-        notifier.addError "Sign in operation Failed", dismissable: false
+        notifier.addError op + "operation Failed", dismissable: false
 
   getAccessToken: ->
-    @harookitToken = atom.config.get('harookit-account-token')
+    @harookitToken = atom.config.get('harookit-atom.harooCloudAccessToken') || ''
 
   deleteAccountToken: ->
-    atom.config.set('harookit-account-token', null)
+    atom.config.set('harookit-atom.harooCloudAccessToken', null)
 
   saveAccessToken: (token) ->
-    console.log 'saveAccessToken()'
-    atom.config.set('harookit-account-token', token)
+    console.log 'saveAccessToken()', token
+    atom.config.set('harookit-atom.harooCloudAccessToken', token)
 
   signIn: ->
     console.log "account sign in", @harookitView
@@ -129,8 +106,9 @@ module.exports =
 
   signOut: ->
     console.log "account sign out", @harookitView
-    @deleteAccountToken()
     @harookitToken = null
+    @harookitView.repository.hide()
+    @deleteAccountToken()
 
   toggleRepository: ->
     @harookitView.repository.toggle()
